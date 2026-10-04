@@ -1,6 +1,6 @@
 # Issue tracker: Local Markdown
 
-Tickets for this repo are private, local working files under `.scratch/`. `.scratch/` is not committed; no shared tickets are expected.
+Tickets for this repo are private, local working files under `.scratch/`. Ticket directories are not committed; no shared tickets are expected. Specs may be committed when they need to persist.
 
 ## Conventions
 
@@ -12,7 +12,7 @@ Tickets for this repo are private, local working files under `.scratch/`. `.scra
 
 ## When a skill says "publish to the issue tracker"
 
-Create a file under `.scratch/<feature-slug>/` locally. Do not commit it or treat it as a shared ticket unless the user explicitly asks.
+Create one ticket per file under `.scratch/<feature-slug>/issues/` locally. Do not commit tickets or treat them as shared unless the user explicitly asks.
 
 ## When a skill says "fetch the relevant ticket"
 
