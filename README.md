@@ -25,19 +25,20 @@ The inventory lives in `justfile`:
 Shared skills are installed once under `~/.agents/skills`, which both agents discover.
 The setup does not manage `find-skills` or `solana-dev`.
 
-Rerunning `just install` is supported. It preserves credentials, unrelated settings,
-and unrelated skills, but **replaces managed skills with current upstream content**.
-Back up local edits first; the maintainer's `to-tickets` copy has additions not present
-upstream. npm packages follow `latest`; Git skills and Ponytail follow upstream branches,
-so machines installed at different times may receive different versions.
+`just install` installs the inventory in `justfile`. `just update` uses Pi's native
+`pi update --all`, which updates Pi and every package configured in Pi (including any
+extra packages), and updates the managed Codex CLI, selected skills, and Ponytail
+marketplace. Updates preserve credentials, unrelated settings, and unrelated skills,
+but **replace managed skills with current upstream content**. Back up local edits first;
+the maintainer's `to-tickets` copy has additions not present upstream. npm packages
+follow `latest`; Git skills and Ponytail follow upstream branches, so machines installed
+at different times may receive different versions.
 
 After installation, sign in separately on each machine (`pi` → `/login`, `codex login`).
 In Codex, open `/hooks`, review and trust Ponytail's lifecycle hooks, then start a new
 thread. Installation enables the plugin but **does not bypass hook trust**. Provider
 credentials and optional extension dependencies (such as a browser for preview rendering)
 are not provisioned here.
-
-`just update` is tracked separately in ticket 02 and is not implemented yet.
 
 ## Verify
 
@@ -51,7 +52,8 @@ This builds a clean Linux image with the prerequisites and runs the real install
 as a non-root user. No host home directory, credentials, or Docker socket is mounted.
 It verifies CLI versions against npm, Pi's loaded extension registrations, both
 agents' discovery of all selected skills, the enabled Ponytail plugin and its skills,
-and a second install preserving seeded settings, dummy credentials, and a custom skill.
+and a repeated install plus `just update` preserving seeded settings, dummy credentials,
+and a custom skill.
 Agent discovery runs outside the setup checkout. No model calls or real credentials
 are used; this checks host integration, not every extension feature or model behavior.
 Docker may block Codex's nested bubblewrap sandbox and log a user-namespace warning;

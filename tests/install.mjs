@@ -112,6 +112,8 @@ for (const [path, content] of preserved) {
 }
 const configBefore = readFileSync(configPath, 'utf8');
 run('just', '--justfile', '/setup/justfile', 'install');
+run('just', '--justfile', '/setup/justfile', 'update');
+console.log('PASS: just update completed');
 for (const [path, content] of preserved) assert.equal(readFileSync(path, 'utf8'), content, `Changed ${path}`);
 assert.equal(readFileSync(configPath, 'utf8'), configBefore, 'Changed unrelated Codex configuration');
 const settingsAfter = JSON.parse(readFileSync(settingsPath, 'utf8'));
