@@ -2,12 +2,12 @@
 
 A shared global Pi and Codex setup for Linux machines.
 
-## Nix/Home Manager setup (in progress)
+## Nix and Home Manager
 
-The flake provides **Pi and Codex CLIs, four Pi extensions, and Ponytail** on
-`x86_64-linux`. Pi comes from its official stable flake; Codex comes from Nixpkgs.
-Selected shared skills are pinned and linked individually; the final lifecycle
-cutover is still pending.
+This flake provides **Pi and Codex CLIs, four Pi extensions, Ponytail, and 28
+selected shared skills** through a Home Manager module on `x86_64-linux`. Pi
+comes from its official stable flake; Codex comes from Nixpkgs. Skills are
+pinned and linked individually.
 
 Add this input to your existing Home Manager flake:
 
@@ -21,10 +21,22 @@ username, home directory, state version, and other modules. No `extraSpecialArgs
 or overlay is needed. Codex uses your Home Manager configuration's `pkgs.codex`;
 Pi uses the official package pinned through the ai-setup input.
 
+Activate it with your usual Home Manager workflow, for example:
+
+```sh
+home-manager switch --flake .#alice@laptop
+```
+
+After activation, sign in separately with Pi's `/login` and `codex login`. Review
+and trust Ponytail's hooks manually in Codex before starting a new thread.
+
+This assumes Nix flakes and Home Manager are already configured on an
+`x86_64-linux` host; it does not provision an operating system or install Nix.
 Use a recent Home Manager with `programs.pi-coding-agent.enable` and `package`,
-and `programs.codex.plugins` and `mutableSettings`. The checks are tested with
-Home Manager revision `f53f3267f5d009dd8f99443505e609389d7ff267` (master,
-2026-10-05), Nixpkgs unstable, and Nix 2.19.2 with `nix-command` and `flakes` enabled.
+and `programs.codex.plugins` and `mutableSettings`. The checks use Home Manager
+revision `f53f3267f5d009dd8f99443505e609389d7ff267` (master, 2026-10-05), Nixpkgs
+unstable, and Nix 2.19.2 with `nix-command` and `flakes` enabled. Codex's
+Nixpkgs package includes `bubblewrap` for its Linux sandbox.
 Pi continues using your existing `~/.pi/agent/models.json`, settings, keybindings,
 authentication, and sessions. The module does not change Pi's agent directory
 or manage these mutable files. Do not separately declare them through Home
@@ -35,10 +47,15 @@ settings into the existing configuration, retaining unrelated settings and
 marketplaces. Credentials remain unmanaged. Do not also manage `config.toml`
 as an immutable `home.file` or disable `programs.codex.mutableSettings`.
 
-Versions follow your consumer lockfile, not npm's `latest`. Refresh the ai-setup
-input deliberately, review the resulting lock changes, and activate through your
-usual Home Manager workflow. For consumer-selected Nixpkgs versions, optionally
-set `inputs.ai-setup.inputs.nixpkgs.follows = "nixpkgs"`; the consumer's Home Manager
+Versions follow your consumer lockfile. Refresh the ai-setup input deliberately
+and review the lock changes before activating:
+
+```sh
+nix flake lock --update-input ai-setup
+```
+
+For consumer-selected Nixpkgs versions, optionally set
+`inputs.ai-setup.inputs.nixpkgs.follows = "nixpkgs"`; the consumer's Home Manager
 must still be compatible.
 
 To check this repository without activating your home:
@@ -51,11 +68,10 @@ This builds both CLIs, all four extensions, Ponytail, the selected-skill bundle,
 and a test Home Manager generation. It checks individual links and Pi resource
 loading, then activates twice inside a sandboxed disposable home. Pi and Codex
 must discover all 28 shared skills, while Codex also sees the six namespaced
-Ponytail skills and three still-untrusted hooks. Seeded settings, credentials,
-unrelated skills/extensions, and a conflicting personal catalog exercise
-preservation. It never activates your real home, executes hooks, or makes model
-calls. Migration verification is Nix-only; the legacy Docker suite below is not
-required.
+Ponytail skills and three still-untrusted hooks. Seeded settings, dummy credentials,
+unrelated skills/extensions, a custom Pi provider/model, and a conflicting personal
+catalog exercise preservation. Pi discovers the custom model without a model
+request. The check never activates your real home or executes hooks.
 
 ### Pi extensions and existing installations
 
@@ -83,12 +99,11 @@ Also remove the old managed `git:github.com/DietrichGebert/ponytail` entry
 (including revision-qualified variants) now that its extension and skills come
 from Nix. Check project `.pi/settings.json` for declarations of these same
 packages if you previously installed them locally; remove only those matching
-entries too. Keep every unrelated entry, all other settings, and `models.json`. This avoids loading the old npm copy alongside its Nix
-link. Nix never rewrites those settings or deletes old caches. If a destination
+entries too. Keep every unrelated entry, all other settings, and `models.json`.
+This avoids loading the old npm copy alongside its Nix link. Nix never rewrites
+those settings or deletes old caches. If a destination
 such as `~/.pi/agent/extensions/pi-web-access` already exists, move that child
 aside after inspecting/backing it up; do not replace the containing directory.
-Do not use `just install`/`just update` for these migrated extensions afterward;
-they can restore old declarations or update a second copy.
 
 Pandoc, a browser/Chromium, and LaTeX remain optional markdown-preview feature
 dependencies; install them separately only for the rendering modes you use.
@@ -109,8 +124,7 @@ shell startup files. Start Codex from that profile's PATH.
 
 Home Manager enables `ponytail@home-manager` and explicitly disables the old
 `ponytail@ponytail` identity without removing unrelated plugins or marketplaces.
-Old caches are not deleted. Do not run the legacy Ponytail installer/update
-against this managed copy. Inspect and move aside only conflicting managed Pi
+Old caches are not deleted. Inspect and move aside only conflicting managed Pi
 extension/skill children, never their containing directories.
 
 **An existing personal `~/.agents/plugins/marketplace.json` stops activation**,
@@ -154,60 +168,3 @@ remain user-owned. Before first activation, inspect and move aside only collidin
 copies of the 28 managed skills from previous installations; leave every other
 skill and the containing directory in place. Activation itself uses only the
 locked store sources and does not fetch or mutate GitHub content.
-
-## Install
-
-Prerequisites: Node.js **22.19+**, npm/npx, Git, and [just](https://just.systems).
-Use a writable npm global prefix with its `bin` directory on `PATH` (for example,
-a user-managed Node installation). No `sudo` is needed by this repo. Install
-`bubblewrap` with your OS package manager for Codex's Linux sandbox.
-
-```sh
-git clone https://github.com/qrilka/ai-setup.git
-cd ai-setup
-just install
-```
-
-The inventory lives in `justfile`:
-
-- Latest Pi (`@earendil-works/pi-coding-agent`) and Codex (`@openai/codex`) CLIs.
-- Pi packages: markdown preview, ask-user-question, web access, subagents, and Ponytail.
-- 27 selected skills from `mattpocock/skills` and `show-me` from `humanlayer/skills`.
-- The Ponytail Codex plugin and its six skills. Codex namespaces these as `ponytail:<skill>`.
-
-Shared skills are installed once under `~/.agents/skills`, which both agents discover.
-The setup does not manage `find-skills` or `solana-dev`.
-
-`just install` installs the inventory in `justfile`. `just update` uses Pi's native
-`pi update --all`, which updates Pi and every package configured in Pi (including any
-extra packages), and updates the managed Codex CLI, selected skills, and Ponytail
-marketplace. Updates preserve credentials, unrelated settings, and unrelated skills,
-but **replace managed skills with current upstream content**. Back up local edits first;
-the maintainer's `to-tickets` copy has additions not present upstream. npm packages
-follow `latest`; Git skills and Ponytail follow upstream branches, so machines installed
-at different times may receive different versions.
-
-After installation, sign in separately on each machine (`pi` → `/login`, `codex login`).
-In Codex, open `/hooks`, review and trust Ponytail's lifecycle hooks, then start a new
-thread. Installation enables the plugin but **does not bypass hook trust**. Provider
-credentials and optional extension dependencies (such as a browser for preview rendering)
-are not provisioned here.
-
-## Verify
-
-With Docker installed and its daemon running:
-
-```sh
-just test
-```
-
-This builds a clean Linux image with the prerequisites and runs the real installer
-as a non-root user. No host home directory, credentials, or Docker socket is mounted.
-It verifies CLI versions against npm, Pi's loaded extension registrations, both
-agents' discovery of all selected skills, the enabled Ponytail plugin and its skills,
-and a repeated install plus `just update` preserving seeded settings, dummy credentials,
-and a custom skill.
-Agent discovery runs outside the setup checkout. No model calls or real credentials
-are used; this checks host integration, not every extension feature or model behavior.
-Docker may block Codex's nested bubblewrap sandbox and log a user-namespace warning;
-this test does not execute Codex tools or relax Docker's isolation to suppress it.

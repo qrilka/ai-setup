@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readlinkSync, realpathSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 const [generation, piPackage, previousCatalog] = process.argv.slice(2);
@@ -10,8 +10,32 @@ assert.ok(home === '/build/ai-setup-home', 'Run through the sandboxed Nix check,
 const workspace = '/build/ai-setup-workspace';
 mkdirSync(workspace, { recursive: true });
 const codexDir = join(home, '.codex');
+const piAgentDir = join(home, '.pi/agent');
 const catalogPath = join(home, '.agents/plugins/marketplace.json');
 const sharedSkillsPath = join(home, '.agents/skills');
+const piSettings = '{"theme":"light","customSentinel":{"keep":true},"packages":[]}\n';
+const piAuth = '{"openai":{"type":"api_key","key":"dummy-not-real"}}\n';
+const piModels = `${JSON.stringify({
+  providers: {
+    'ai-setup-sentinel': {
+      baseUrl: 'http://127.0.0.1:9/v1',
+      api: 'openai-completions',
+      apiKey: 'dummy-not-real',
+      models: [{ id: 'sentinel-model' }],
+    },
+  },
+})}\n`;
+const piExtension = 'export default function(pi) { pi.registerTool({ name: "sentinel_extension_tool", description: "sentinel", parameters: { type: "object", properties: {} }, execute: async () => ({ content: [], details: undefined }) }); }\n';
+const piPreserved = new Map([
+  [join(piAgentDir, 'settings.json'), piSettings],
+  [join(piAgentDir, 'auth.json'), piAuth],
+  [join(piAgentDir, 'models.json'), piModels],
+  [join(piAgentDir, 'extensions/unrelated.ts'), piExtension],
+]);
+for (const [path, content] of piPreserved) {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content);
+}
 const unrelatedSkill = join(sharedSkillsPath, 'unrelated-user-skill');
 const unrelatedSkillText = 'User-owned skill; leave unchanged.\n';
 mkdirSync(unrelatedSkill, { recursive: true });
@@ -60,6 +84,7 @@ for (let pass = 0; pass < 2; pass++) {
   assert.equal(readFileSync(`${catalogPath}.saved`, 'utf8'), catalog, 'Changed saved catalog');
   assert.equal(readFileSync(join(unrelatedSkill, 'SKILL.md'), 'utf8'), `---\nname: unrelated-user-skill\ndescription: Seeded user skill.\n---\n\n${unrelatedSkillText}`);
   assert.equal(readFileSync(join(unrelatedSkill, 'notes.txt'), 'utf8'), unrelatedSkillText);
+  for (const [path, content] of piPreserved) assert.equal(readFileSync(path, 'utf8'), content, `Changed ${path}`);
   const settings = JSON.parse(execFileSync('jaq', ['--from', 'toml', '--to', 'json', '.', configPath], { encoding: 'utf8' }));
   assert.equal(settings.model, 'sentinel-model');
   assert.equal(settings.plugins['unrelated@user'].enabled, true);
@@ -91,10 +116,18 @@ const names = ['ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt',
 for (const name of sharedSkillNames) assert.ok(existsSync(join(sharedSkillsPath, name, 'SKILL.md')), `Shared skill link ${name}`);
 assert.ok(existsSync(join(sharedSkillsPath, 'to-tickets/agents/openai.yaml')));
 assert.match(readFileSync(join(sharedSkillsPath, 'pr/SKILL.md'), 'utf8'), /organisation: Humanlayer/);
-const { DefaultResourceLoader } = await import(`${piPackage}/lib/pi/node_modules/@earendil-works/pi-coding-agent/dist/index.js`);
+const { DefaultResourceLoader, ModelRuntime } = await import(`${piPackage}/lib/pi/node_modules/@earendil-works/pi-coding-agent/dist/index.js`);
+const modelRuntime = await ModelRuntime.create({
+  authPath: join(piAgentDir, 'auth.json'),
+  modelsPath: join(piAgentDir, 'models.json'),
+  refreshOnCreate: false,
+  allowModelNetwork: false,
+});
+assert.equal(modelRuntime.getModel('ai-setup-sentinel', 'sentinel-model')?.id, 'sentinel-model');
 const loader = new DefaultResourceLoader({ cwd: home, agentDir: join(home, '.pi/agent') });
 await loader.reload();
 assert.deepEqual(loader.getExtensions().errors, []);
+assert.equal(loader.getExtensions().extensions.filter(e => e.tools.has('sentinel_extension_tool')).length, 1);
 assert.equal(loader.getExtensions().extensions.filter(e => e.commands.has('ponytail')).length, 1);
 for (const name of names) assert.equal(loader.getSkills().skills.filter(s => s.name === name).length, 1, `Pi skill ${name}`);
 for (const name of sharedSkillNames) assert.equal(loader.getSkills().skills.filter(s => s.name === name).length, 1, `Pi shared skill ${name}`);
@@ -142,7 +175,7 @@ try {
     assert.equal(hook.isManaged, false);
     assert.equal(hook.trustStatus, 'untrusted', 'Hook trust must remain manual');
   }
-  console.log('PASS: activation preserves unrelated skills/settings/credentials; Pi/Codex discover the 28 shared skills and six Ponytail skills, with Codex hooks untrusted');
+  console.log('PASS: activation preserves unrelated Pi/Codex state; Pi discovers the custom model, and both agents discover managed skills with Codex hooks untrusted');
 } finally {
   clearTimeout(deadline);
   lines.close();
