@@ -2,6 +2,51 @@
 
 A shared global Pi and Codex setup for Linux machines.
 
+## Nix/Home Manager CLI base (in progress)
+
+The flake currently provides **only Pi and Codex CLIs** on `x86_64-linux`.
+Pi comes from its official stable flake; Codex comes from Nixpkgs. Extension,
+plugin, and skill migration is still pending, so this does not yet replace the
+full installer below.
+
+Add this input to your existing Home Manager flake:
+
+```nix
+inputs.ai-setup.url = "github:qrilka/ai-setup";
+```
+
+Then include `inputs.ai-setup.homeManagerModules.default` in the `modules` list
+of your existing `home-manager.lib.homeManagerConfiguration`. Keep your own
+username, home directory, state version, and other modules. No `extraSpecialArgs`
+or overlay is needed. Codex uses your Home Manager configuration's `pkgs.codex`;
+Pi uses the official package pinned through the ai-setup input.
+
+Use a recent Home Manager with `programs.pi-coding-agent.enable` and `package`,
+and `programs.codex.enable` and `package`. The evaluation/build check is tested
+with Home Manager revision `f53f3267f5d009dd8f99443505e609389d7ff267` (master,
+2026-10-05), Nixpkgs unstable, and Nix 2.19.2 with `nix-command` and `flakes` enabled.
+The module leaves agent settings and credentials unmanaged: in particular,
+Pi continues using your existing `~/.pi/agent/models.json`, settings, keybindings,
+authentication, and sessions. It does not change Pi's agent directory or declare
+Codex settings. Do not separately declare those files through Home Manager unless
+you intend to take ownership of them.
+
+Versions follow your consumer lockfile, not npm's `latest`. Refresh the ai-setup
+input deliberately, review the resulting lock changes, and activate through your
+usual Home Manager workflow. For consumer-selected Nixpkgs versions, optionally
+set `inputs.ai-setup.inputs.nixpkgs.follows = "nixpkgs"`; the consumer's Home Manager
+must still be compatible.
+
+To check this repository without activating your home:
+
+```sh
+nix flake check
+```
+
+This builds both CLIs and a test Home Manager generation, checks their selection
+and that no agent-owned files or agent-directory overrides are generated, but
+never executes the activation script or makes model calls.
+
 ## Install
 
 Prerequisites: Node.js **22.19+**, npm/npx, Git, and [just](https://just.systems).
