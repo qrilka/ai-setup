@@ -91,12 +91,30 @@
         "type": "github"
       }
     },
+    "ponytail": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791171641,
+        "narHash": "sha256-MwdDEgZGUQV4J1Yqslik+CUWDZxj9qaAG8EAbiQgxG8=",
+        "owner": "DietrichGebert",
+        "repo": "ponytail",
+        "rev": "e15862bb04d04285233a164460ced063941d9ef5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DietrichGebert",
+        "repo": "ponytail",
+        "rev": "e15862bb04d04285233a164460ced063941d9ef5",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
         "markdown-preview": "markdown-preview",
         "nixpkgs": "nixpkgs",
         "pi": "pi",
+        "ponytail": "ponytail",
         "rpiv": "rpiv",
         "subagents": "subagents",
         "web-access": "web-access"

@@ -4,9 +4,9 @@ A shared global Pi and Codex setup for Linux machines.
 
 ## Nix/Home Manager setup (in progress)
 
-The flake provides **Pi and Codex CLIs and four Pi extensions** on `x86_64-linux`.
-Pi comes from its official stable flake; Codex comes from Nixpkgs. Ponytail and
-shared skill migration is still pending, so this does not yet replace the full
+The flake provides **Pi and Codex CLIs, four Pi extensions, and Ponytail** on
+`x86_64-linux`. Pi comes from its official stable flake; Codex comes from Nixpkgs.
+Shared skill migration is still pending, so this does not yet replace the full
 installer below.
 
 Add this input to your existing Home Manager flake:
@@ -22,14 +22,18 @@ or overlay is needed. Codex uses your Home Manager configuration's `pkgs.codex`;
 Pi uses the official package pinned through the ai-setup input.
 
 Use a recent Home Manager with `programs.pi-coding-agent.enable` and `package`,
-and `programs.codex.enable` and `package`. The evaluation/build check is tested
-with Home Manager revision `f53f3267f5d009dd8f99443505e609389d7ff267` (master,
+and `programs.codex.plugins` and `mutableSettings`. The checks are tested with
+Home Manager revision `f53f3267f5d009dd8f99443505e609389d7ff267` (master,
 2026-10-05), Nixpkgs unstable, and Nix 2.19.2 with `nix-command` and `flakes` enabled.
-The module leaves agent settings and credentials unmanaged: in particular,
 Pi continues using your existing `~/.pi/agent/models.json`, settings, keybindings,
-authentication, and sessions. It does not change Pi's agent directory or declare
-Codex settings. Do not separately declare those files through Home Manager unless
-you intend to take ownership of them.
+authentication, and sessions. The module does not change Pi's agent directory
+or manage these mutable files. Do not separately declare them through Home
+Manager unless you intend to take ownership of them.
+
+Codex's `config.toml` remains writable: Home Manager merges declared plugin
+settings into the existing configuration, retaining unrelated settings and
+marketplaces. Credentials remain unmanaged. Do not also manage `config.toml`
+as an immutable `home.file` or disable `programs.codex.mutableSettings`.
 
 Versions follow your consumer lockfile, not npm's `latest`. Refresh the ai-setup
 input deliberately, review the resulting lock changes, and activate through your
@@ -43,10 +47,14 @@ To check this repository without activating your home:
 nix flake check
 ```
 
-This builds both CLIs, all four extensions, and a test Home Manager generation.
-It checks individual extension links, leaves agent-owned settings/credentials
-unmanaged, and verifies Pi resource loading in a disposable home with unrelated
-settings and an extension. It never executes activation or makes model calls.
+This builds both CLIs, all four extensions, Ponytail, and a test Home Manager
+generation. It checks individual links and Pi resource loading, then activates
+twice inside a sandboxed disposable home. Real Codex discovery verifies the
+plugin identity, six namespaced skills, and three still-untrusted hooks. Seeded
+settings, credentials, an unrelated extension, and a conflicting personal catalog
+exercise preservation. It never activates your real home, executes hooks, or
+makes model calls. Migration verification is Nix-only; the legacy Docker suite
+below is not required.
 
 ### Pi extensions and existing installations
 
@@ -70,10 +78,11 @@ npm:pi-web-access
 npm:pi-subagents
 ```
 
-Keep every other entry (including Ponytail for now), all other settings, and
-`models.json`. Check project `.pi/settings.json` for declarations of the same
-four packages if you previously installed them locally; remove only those
-matching entries too. This avoids loading the old npm copy alongside its Nix
+Also remove the old managed `git:github.com/DietrichGebert/ponytail` entry
+(including revision-qualified variants) now that its extension and skills come
+from Nix. Check project `.pi/settings.json` for declarations of these same
+packages if you previously installed them locally; remove only those matching
+entries too. Keep every unrelated entry, all other settings, and `models.json`. This avoids loading the old npm copy alongside its Nix
 link. Nix never rewrites those settings or deletes old caches. If a destination
 such as `~/.pi/agent/extensions/pi-web-access` already exists, move that child
 aside after inspecting/backing it up; do not replace the containing directory.
@@ -88,6 +97,48 @@ The check covers discovery/registration, not model calls or every feature.
 To update these extensions, change their source revisions in `flake.nix`, run
 `nix flake lock`, review the source/lock changes, and run `nix flake check` before
 committing. Consumer deployments update their ai-setup input as described above.
+
+### Ponytail and Codex migration
+
+One pinned Ponytail source supplies the Pi extension, six individual Pi skill
+links, and the Codex plugin's manifest, skills, hooks, scripts, and assets. Codex
+skills retain `ponytail:<skill>` names; no unnamespaced shared copies are added.
+Node is included in the Home Manager profile so hooks can resolve it without
+shell startup files. Start Codex from that profile's PATH.
+
+Home Manager enables `ponytail@home-manager` and explicitly disables the old
+`ponytail@ponytail` identity without removing unrelated plugins or marketplaces.
+Old caches are not deleted. Do not run the legacy Ponytail installer/update
+against this managed copy. Inspect and move aside only conflicting managed Pi
+extension/skill children, never their containing directories.
+
+**An existing personal `~/.agents/plugins/marketplace.json` stops activation**,
+even when Home Manager backups are enabled. Preserve that catalog and back up
+Codex's config before reconciling it. Keep unrelated catalog entries in a separate
+marketplace root containing `.agents/plugins/marketplace.json`, adjust relative
+plugin source paths as needed, and register that root in your Home Manager config,
+for example:
+
+```nix
+programs.codex.marketplaces.personal = "/home/you/preserved-marketplace";
+```
+
+Retain the appropriate enabled plugin identities/settings for that marketplace,
+or declare its plugins through `programs.codex.plugins`. Only after reconciliation,
+move the original catalog out of the managed destination; do not remove the
+`.agents/plugins` directory. The next activation writes Home Manager's catalog.
+An existing Home Manager-owned catalog can be updated normally only when its
+marketplace identity and all unrelated plugin entries are retained. If entries
+would be changed or lost, the same preservation/reconciliation guard applies.
+
+Codex 0.160 ignores symlinked plugin-version directories and rejects symlinked
+manifests. The module keeps Ponytail's version directory real, links its static
+children, and materializes only `.codex-plugin/plugin.json` from the pinned source
+after linking. Activation does not run Git, npm, or plugin-install commands.
+
+**Hook trust stays manual.** In Codex, open `/hooks`, inspect Ponytail's lifecycle
+hooks, and trust them yourself before starting a new thread. Neither Nix nor
+activation writes hook-trust state or exposes the hooks as managed/trusted hooks.
 
 ## Install
 

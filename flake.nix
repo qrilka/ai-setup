@@ -19,6 +19,10 @@
       url = "github:nicobailon/pi-web-access/d9624588de4a92af1e73be731a462c9bdcfeb96d";
       flake = false;
     };
+    ponytail = {
+      url = "github:DietrichGebert/ponytail/e15862bb04d04285233a164460ced063941d9ef5";
+      flake = false;
+    };
     subagents = {
       url = "github:nicobailon/pi-subagents/ba008223698e78ff71d75ed83076d858d14d9eee";
       flake = false;
@@ -37,11 +41,18 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       extensions = import ./nix/pi-extensions.nix { inherit pkgs inputs; };
+      ponytail = import ./nix/ponytail.nix {
+        inherit pkgs;
+        source = inputs.ponytail;
+      };
     in
     {
       homeManagerModules.default = import ./home-manager.nix { inherit pi inputs; };
-      packages.${system} = extensions;
+      packages.${system} = extensions // {
+        inherit ponytail;
+      };
       checks.${system} = extensions // {
+        inherit ponytail;
         pi = pi.packages.${system}.default;
         codex = pkgs.codex;
         home-manager = import ./tests/home-manager.nix {
