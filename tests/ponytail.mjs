@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readlinkSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readlinkSync, realpathSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -11,6 +11,12 @@ const workspace = '/build/ai-setup-workspace';
 mkdirSync(workspace, { recursive: true });
 const codexDir = join(home, '.codex');
 const catalogPath = join(home, '.agents/plugins/marketplace.json');
+const sharedSkillsPath = join(home, '.agents/skills');
+const unrelatedSkill = join(sharedSkillsPath, 'unrelated-user-skill');
+const unrelatedSkillText = 'User-owned skill; leave unchanged.\n';
+mkdirSync(unrelatedSkill, { recursive: true });
+writeFileSync(join(unrelatedSkill, 'SKILL.md'), `---\nname: unrelated-user-skill\ndescription: Seeded user skill.\n---\n\n${unrelatedSkillText}`);
+writeFileSync(join(unrelatedSkill, 'notes.txt'), unrelatedSkillText);
 const configPath = join(codexDir, 'config.toml');
 mkdirSync(codexDir, { recursive: true });
 mkdirSync(join(home, '.agents/plugins'), { recursive: true });
@@ -52,6 +58,8 @@ for (let pass = 0; pass < 2; pass++) {
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(readFileSync(authPath, 'utf8'), auth, 'Changed credentials');
   assert.equal(readFileSync(`${catalogPath}.saved`, 'utf8'), catalog, 'Changed saved catalog');
+  assert.equal(readFileSync(join(unrelatedSkill, 'SKILL.md'), 'utf8'), `---\nname: unrelated-user-skill\ndescription: Seeded user skill.\n---\n\n${unrelatedSkillText}`);
+  assert.equal(readFileSync(join(unrelatedSkill, 'notes.txt'), 'utf8'), unrelatedSkillText);
   const settings = JSON.parse(execFileSync('jaq', ['--from', 'toml', '--to', 'json', '.', configPath], { encoding: 'utf8' }));
   assert.equal(settings.model, 'sentinel-model');
   assert.equal(settings.plugins['unrelated@user'].enabled, true);
@@ -72,13 +80,25 @@ const plugins = JSON.parse(execFileSync('codex', ['plugin', 'list', '--json'], {
 assert.equal(plugins.installed.filter(p => p.pluginId === 'ponytail@home-manager' && p.enabled).length, 1, JSON.stringify(plugins));
 assert.ok(!plugins.installed.some(p => p.pluginId === 'ponytail@ponytail' && p.enabled));
 
+const sharedSkillNames = [
+  'ask-matt', 'codebase-design', 'code-review', 'diagnosing-bugs', 'domain-modeling',
+  'grilling', 'grill-me', 'grill-with-docs', 'handoff', 'implement', 'implement-spec',
+  'improve-codebase-architecture', 'pr', 'prototype', 'research', 'retro',
+  'setup-matt-pocock-skills', 'tdd', 'teach', 'to-questionnaire', 'to-spec', 'to-tickets',
+  'triage', 'wait-what', 'wayfinder', 'wizard', 'writing-for-agents', 'show-me',
+];
 const names = ['ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help'];
+for (const name of sharedSkillNames) assert.ok(existsSync(join(sharedSkillsPath, name, 'SKILL.md')), `Shared skill link ${name}`);
+assert.ok(existsSync(join(sharedSkillsPath, 'to-tickets/agents/openai.yaml')));
+assert.match(readFileSync(join(sharedSkillsPath, 'pr/SKILL.md'), 'utf8'), /organisation: Humanlayer/);
 const { DefaultResourceLoader } = await import(`${piPackage}/lib/pi/node_modules/@earendil-works/pi-coding-agent/dist/index.js`);
 const loader = new DefaultResourceLoader({ cwd: home, agentDir: join(home, '.pi/agent') });
 await loader.reload();
 assert.deepEqual(loader.getExtensions().errors, []);
 assert.equal(loader.getExtensions().extensions.filter(e => e.commands.has('ponytail')).length, 1);
 for (const name of names) assert.equal(loader.getSkills().skills.filter(s => s.name === name).length, 1, `Pi skill ${name}`);
+for (const name of sharedSkillNames) assert.equal(loader.getSkills().skills.filter(s => s.name === name).length, 1, `Pi shared skill ${name}`);
+assert.equal(loader.getSkills().skills.filter(s => s.name === 'unrelated-user-skill').length, 1);
 
 const server = spawn('codex', ['app-server'], { cwd: workspace, stdio: ['pipe', 'pipe', 'inherit'] });
 const deadline = setTimeout(() => server.kill('SIGKILL'), 60_000);
@@ -106,6 +126,12 @@ try {
   assert.deepEqual(responses.get(2).data.flatMap(e => e.errors), []);
   const skills = responses.get(2).data.flatMap(e => e.skills);
   for (const name of names) assert.equal(skills.filter(s => s.name === `ponytail:${name}` && s.enabled && s.pluginId === 'ponytail@home-manager').length, 1, `Codex skill ${name}`);
+  for (const name of sharedSkillNames) {
+    const found = skills.filter(s => s.name === name);
+    assert.equal(found.length, 1, `Codex shared skill ${name}`);
+    assert.equal(found[0].path, realpathSync(join(sharedSkillsPath, name, 'SKILL.md')));
+  }
+  assert.equal(skills.filter(s => s.name === 'unrelated-user-skill').length, 1);
   const hookEntries = responses.get(3).data;
   assert.deepEqual(hookEntries.flatMap(e => e.errors), []);
   const hooks = hookEntries.flatMap(e => e.hooks).filter(h => h.pluginId === 'ponytail@home-manager');
@@ -116,7 +142,7 @@ try {
     assert.equal(hook.isManaged, false);
     assert.equal(hook.trustStatus, 'untrusted', 'Hook trust must remain manual');
   }
-  console.log('PASS: activation merges settings, disables old Ponytail, and preserves credentials; Pi/Codex discover six skills and Codex leaves hooks untrusted');
+  console.log('PASS: activation preserves unrelated skills/settings/credentials; Pi/Codex discover the 28 shared skills and six Ponytail skills, with Codex hooks untrusted');
 } finally {
   clearTimeout(deadline);
   lines.close();

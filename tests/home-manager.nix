@@ -44,6 +44,9 @@ let
     "pi-subagents"
   ];
   extensionPaths = map (name: ".pi/agent/extensions/${name}") (extensionNames ++ [ "ponytail" ]);
+  sharedSkillPaths = pkgs.lib.filter (pkgs.lib.hasPrefix ".agents/skills/") (
+    builtins.attrNames cfg.home.file
+  );
   ponytailSkills = [
     "ponytail"
     "ponytail-review"
@@ -82,6 +85,8 @@ assert (builtins.head cfg.programs.codex.plugins).pname == "ponytail";
 assert builtins.length pluginPaths == 1;
 assert !cfg.home.file.".agents/plugins/marketplace.json".force;
 assert cfg.programs.codex.hooks == { };
+assert builtins.length sharedSkillPaths == 28;
+assert pkgs.lib.all (path: !cfg.home.file.${path}.recursive) sharedSkillPaths;
 assert pkgs.lib.all (
   path: builtins.hasAttr path cfg.home.file && !cfg.home.file.${path}.recursive
 ) skillPaths;

@@ -3,6 +3,18 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    agent-skills-nix = {
+      url = "github:Kyure-A/agent-skills-nix/dc122af897ab9a685c20ae54c639021619dbbb52";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    matt-skills = {
+      url = "github:mattpocock/skills/4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d";
+      flake = false;
+    };
+    humanlayer-skills = {
+      url = "github:humanlayer/skills/ca7c8088db69e315a8b2deea43820270457f8f3c";
+      flake = false;
+    };
     pi.url = "github:earendil-works/pi/stable";
     pi.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
@@ -45,14 +57,19 @@
         inherit pkgs;
         source = inputs.ponytail;
       };
+      sharedSkills = import ./nix/shared-skills.nix { inherit pkgs inputs; };
     in
     {
       homeManagerModules.default = import ./home-manager.nix { inherit pi inputs; };
       packages.${system} = extensions // {
         inherit ponytail;
+        shared-skills = sharedSkills.bundle;
       };
       checks.${system} = extensions // {
         inherit ponytail;
+        shared-skills =
+          assert sharedSkills.selection."to-tickets".source == "matt";
+          sharedSkills.bundle;
         pi = pi.packages.${system}.default;
         codex = pkgs.codex;
         home-manager = import ./tests/home-manager.nix {

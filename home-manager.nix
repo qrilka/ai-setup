@@ -11,6 +11,7 @@ let
     inherit pkgs;
     source = inputs.ponytail;
   };
+  sharedSkills = import ./nix/shared-skills.nix { inherit pkgs inputs; };
   codexDir =
     if config.home.preferXdgDirectories then
       "${lib.removePrefix config.home.homeDirectory config.xdg.configHome}/codex"
@@ -50,7 +51,10 @@ in
       # Codex 0.160 ignores symlinked version directories when selecting an
       # installed plugin. Keep the directory real and link its static children.
       ${ponytailCachePath}.recursive = true;
-    };
+    }
+    // lib.mapAttrs' (
+      name: source: lib.nameValuePair ".agents/skills/${name}" { inherit source; }
+    ) sharedSkills.paths;
 
   # HM's normal collision handling can back up and replace this catalog. Stop
   # first instead: the user must reconcile unrelated entries into their config.

@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "agent-skills-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790154098,
+        "narHash": "sha256-SviEpvFefXCPOmQ2b41c4ujE7BzWYJ/h8p/HZNxD2B8=",
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "rev": "dc122af897ab9a685c20ae54c639021619dbbb52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "rev": "dc122af897ab9a685c20ae54c639021619dbbb52",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -20,6 +41,23 @@
         "type": "github"
       }
     },
+    "humanlayer-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789646706,
+        "narHash": "sha256-BX9k5S3hwgik7AKxssUVm7VQRTjgjXVVcE2Jph88tS0=",
+        "owner": "humanlayer",
+        "repo": "skills",
+        "rev": "ca7c8088db69e315a8b2deea43820270457f8f3c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "humanlayer",
+        "repo": "skills",
+        "rev": "ca7c8088db69e315a8b2deea43820270457f8f3c",
+        "type": "github"
+      }
+    },
     "markdown-preview": {
       "flake": false,
       "locked": {
@@ -34,6 +72,23 @@
         "owner": "omaclaren",
         "repo": "pi-markdown-preview",
         "rev": "b646f35e1ae906709ffce0203387ca24ba19ec0f",
+        "type": "github"
+      }
+    },
+    "matt-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791199038,
+        "narHash": "sha256-oN3OQPouK6wrrGzmgNdvdOVLsOJVGaK7cy3BZoE10AA=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d",
         "type": "github"
       }
     },
@@ -110,8 +165,11 @@
     },
     "root": {
       "inputs": {
+        "agent-skills-nix": "agent-skills-nix",
         "home-manager": "home-manager",
+        "humanlayer-skills": "humanlayer-skills",
         "markdown-preview": "markdown-preview",
+        "matt-skills": "matt-skills",
         "nixpkgs": "nixpkgs",
         "pi": "pi",
         "ponytail": "ponytail",

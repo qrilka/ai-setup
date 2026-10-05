@@ -6,8 +6,8 @@ A shared global Pi and Codex setup for Linux machines.
 
 The flake provides **Pi and Codex CLIs, four Pi extensions, and Ponytail** on
 `x86_64-linux`. Pi comes from its official stable flake; Codex comes from Nixpkgs.
-Shared skill migration is still pending, so this does not yet replace the full
-installer below.
+Selected shared skills are pinned and linked individually; the final lifecycle
+cutover is still pending.
 
 Add this input to your existing Home Manager flake:
 
@@ -47,14 +47,15 @@ To check this repository without activating your home:
 nix flake check
 ```
 
-This builds both CLIs, all four extensions, Ponytail, and a test Home Manager
-generation. It checks individual links and Pi resource loading, then activates
-twice inside a sandboxed disposable home. Real Codex discovery verifies the
-plugin identity, six namespaced skills, and three still-untrusted hooks. Seeded
-settings, credentials, an unrelated extension, and a conflicting personal catalog
-exercise preservation. It never activates your real home, executes hooks, or
-makes model calls. Migration verification is Nix-only; the legacy Docker suite
-below is not required.
+This builds both CLIs, all four extensions, Ponytail, the selected-skill bundle,
+and a test Home Manager generation. It checks individual links and Pi resource
+loading, then activates twice inside a sandboxed disposable home. Pi and Codex
+must discover all 28 shared skills, while Codex also sees the six namespaced
+Ponytail skills and three still-untrusted hooks. Seeded settings, credentials,
+unrelated skills/extensions, and a conflicting personal catalog exercise
+preservation. It never activates your real home, executes hooks, or makes model
+calls. Migration verification is Nix-only; the legacy Docker suite below is not
+required.
 
 ### Pi extensions and existing installations
 
@@ -139,6 +140,20 @@ after linking. Activation does not run Git, npm, or plugin-install commands.
 **Hook trust stays manual.** In Codex, open `/hooks`, inspect Ponytail's lifecycle
 hooks, and trust them yourself before starting a new thread. Neither Nix nor
 activation writes hook-trust state or exposes the hooks as managed/trusted hooks.
+
+### Shared skills and existing installations
+
+A pinned Matt Pocock source supplies all 27 selected skills, including
+`to-tickets`; a pinned HumanLayer source supplies `show-me`. The upstream `pr`
+skill carries its HumanLayer attribution. Pi and Codex discover all 28 from
+`~/.agents/skills`; the flake adds no local skill copies or overlays.
+
+Home Manager links each skill as its own child entry; it does not link, replace,
+recursively synchronize, or delete `~/.agents/skills`. Existing unrelated skills
+remain user-owned. Before first activation, inspect and move aside only colliding
+copies of the 28 managed skills from previous installations; leave every other
+skill and the containing directory in place. Activation itself uses only the
+locked store sources and does not fetch or mutate GitHub content.
 
 ## Install
 
