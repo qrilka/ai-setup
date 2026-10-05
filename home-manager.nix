@@ -1,5 +1,8 @@
-{ pi }:
+{ pi, inputs }:
 { lib, pkgs, ... }:
+let
+  extensions = import ./nix/pi-extensions.nix { inherit pkgs inputs; };
+in
 {
   assertions = [
     {
@@ -12,6 +15,10 @@
     enable = true;
     package = lib.mkDefault pi.packages.${pkgs.stdenv.hostPlatform.system}.default;
   };
+  home.file = lib.mapAttrs' (
+    name: package: lib.nameValuePair ".pi/agent/extensions/${name}" { source = package; }
+  ) extensions;
+
   programs.codex = {
     enable = true;
     package = lib.mkDefault pkgs.codex;

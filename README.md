@@ -2,12 +2,12 @@
 
 A shared global Pi and Codex setup for Linux machines.
 
-## Nix/Home Manager CLI base (in progress)
+## Nix/Home Manager setup (in progress)
 
-The flake currently provides **only Pi and Codex CLIs** on `x86_64-linux`.
-Pi comes from its official stable flake; Codex comes from Nixpkgs. Extension,
-plugin, and skill migration is still pending, so this does not yet replace the
-full installer below.
+The flake provides **Pi and Codex CLIs and four Pi extensions** on `x86_64-linux`.
+Pi comes from its official stable flake; Codex comes from Nixpkgs. Ponytail and
+shared skill migration is still pending, so this does not yet replace the full
+installer below.
 
 Add this input to your existing Home Manager flake:
 
@@ -43,9 +43,51 @@ To check this repository without activating your home:
 nix flake check
 ```
 
-This builds both CLIs and a test Home Manager generation, checks their selection
-and that no agent-owned files or agent-directory overrides are generated, but
-never executes the activation script or makes model calls.
+This builds both CLIs, all four extensions, and a test Home Manager generation.
+It checks individual extension links, leaves agent-owned settings/credentials
+unmanaged, and verifies Pi resource loading in a disposable home with unrelated
+settings and an extension. It never executes activation or makes model calls.
+
+### Pi extensions and existing installations
+
+Pinned sources and their upstream dependency locks provide `pi-markdown-preview`,
+`@juicesharp/rpiv-ask-user-question`, `pi-web-access`, and `pi-subagents`. Each is
+linked individually under `~/.pi/agent/extensions/`; the containing directory and
+`settings.json` remain user-owned. Builds install npm dependencies offline from
+integrity-checked Nix inputs, exclude Pi host peers, and do not run npm lifecycle
+scripts. Activation does not fetch from npm or Git. The questionnaire copies its
+three locked TypeScript workspaces; other monorepo packages are not installed.
+
+**Before first activation on an existing installation**, back up
+`~/.pi/agent/settings.json` and edit only its `packages` array. Remove the four old
+managed declarations below, including version-qualified variants. Entries may
+be strings or objects with a `source` field; remove the whole matching entry:
+
+```text
+npm:pi-markdown-preview
+npm:@juicesharp/rpiv-ask-user-question
+npm:pi-web-access
+npm:pi-subagents
+```
+
+Keep every other entry (including Ponytail for now), all other settings, and
+`models.json`. Check project `.pi/settings.json` for declarations of the same
+four packages if you previously installed them locally; remove only those
+matching entries too. This avoids loading the old npm copy alongside its Nix
+link. Nix never rewrites those settings or deletes old caches. If a destination
+such as `~/.pi/agent/extensions/pi-web-access` already exists, move that child
+aside after inspecting/backing it up; do not replace the containing directory.
+Do not use `just install`/`just update` for these migrated extensions afterward;
+they can restore old declarations or update a second copy.
+
+Pandoc, a browser/Chromium, and LaTeX remain optional markdown-preview feature
+dependencies; install them separately only for the rendering modes you use.
+Web-provider credentials and optional web/video tools are also not provisioned.
+The check covers discovery/registration, not model calls or every feature.
+
+To update these extensions, change their source revisions in `flake.nix`, run
+`nix flake lock`, review the source/lock changes, and run `nix flake check` before
+committing. Consumer deployments update their ai-setup input as described above.
 
 ## Install
 

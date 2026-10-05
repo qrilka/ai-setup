@@ -20,6 +20,23 @@
         "type": "github"
       }
     },
+    "markdown-preview": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790725980,
+        "narHash": "sha256-efC2dqeHjcnBlmgzrQuWJqCPzQqXTcF8RqzxLnGUXe4=",
+        "owner": "omaclaren",
+        "repo": "pi-markdown-preview",
+        "rev": "b646f35e1ae906709ffce0203387ca24ba19ec0f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "omaclaren",
+        "repo": "pi-markdown-preview",
+        "rev": "b646f35e1ae906709ffce0203387ca24ba19ec0f",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1791048980,
@@ -77,8 +94,63 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
+        "markdown-preview": "markdown-preview",
         "nixpkgs": "nixpkgs",
-        "pi": "pi"
+        "pi": "pi",
+        "rpiv": "rpiv",
+        "subagents": "subagents",
+        "web-access": "web-access"
+      }
+    },
+    "rpiv": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790795459,
+        "narHash": "sha256-69/LipwUE39fIbNqrcOjIh/gkZykojQWATXkVYc6X6k=",
+        "owner": "juicesharp",
+        "repo": "rpiv-mono",
+        "rev": "68d9a0014b70006d7b04b57933752338a2716db7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "juicesharp",
+        "repo": "rpiv-mono",
+        "rev": "68d9a0014b70006d7b04b57933752338a2716db7",
+        "type": "github"
+      }
+    },
+    "subagents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791185807,
+        "narHash": "sha256-APAAU+e103Ae1F0KAhcF7UdGjbXDv1HJoPUxNeC7Xfw=",
+        "owner": "nicobailon",
+        "repo": "pi-subagents",
+        "rev": "ba008223698e78ff71d75ed83076d858d14d9eee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-subagents",
+        "rev": "ba008223698e78ff71d75ed83076d858d14d9eee",
+        "type": "github"
+      }
+    },
+    "web-access": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791177562,
+        "narHash": "sha256-vXdaYGy7GLs1Yg5TXRoO4QFtkN2LR02nDqSnRyqftnM=",
+        "owner": "nicobailon",
+        "repo": "pi-web-access",
+        "rev": "d9624588de4a92af1e73be731a462c9bdcfeb96d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "repo": "pi-web-access",
+        "rev": "d9624588de4a92af1e73be731a462c9bdcfeb96d",
+        "type": "github"
       }
     }
   },
