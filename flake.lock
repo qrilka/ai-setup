@@ -17,7 +17,6 @@
       "original": {
         "owner": "Kyure-A",
         "repo": "agent-skills-nix",
-        "rev": "dc122af897ab9a685c20ae54c639021619dbbb52",
         "type": "github"
       }
     },
@@ -54,7 +53,6 @@
       "original": {
         "owner": "humanlayer",
         "repo": "skills",
-        "rev": "ca7c8088db69e315a8b2deea43820270457f8f3c",
         "type": "github"
       }
     },
@@ -71,7 +69,6 @@
       "original": {
         "owner": "omaclaren",
         "repo": "pi-markdown-preview",
-        "rev": "b646f35e1ae906709ffce0203387ca24ba19ec0f",
         "type": "github"
       }
     },
@@ -88,7 +85,6 @@
       "original": {
         "owner": "mattpocock",
         "repo": "skills",
-        "rev": "4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d",
         "type": "github"
       }
     },
@@ -149,17 +145,16 @@
     "ponytail": {
       "flake": false,
       "locked": {
-        "lastModified": 1791171641,
-        "narHash": "sha256-MwdDEgZGUQV4J1Yqslik+CUWDZxj9qaAG8EAbiQgxG8=",
+        "lastModified": 1791209876,
+        "narHash": "sha256-5RVpw6V/LXIK5QAyV5JU5qghxmdjZp0I3zL+/54mhh0=",
         "owner": "DietrichGebert",
         "repo": "ponytail",
-        "rev": "e15862bb04d04285233a164460ced063941d9ef5",
+        "rev": "1004eaf3db365a54ca57eec04e9be0bebe1eea1f",
         "type": "github"
       },
       "original": {
         "owner": "DietrichGebert",
         "repo": "ponytail",
-        "rev": "e15862bb04d04285233a164460ced063941d9ef5",
         "type": "github"
       }
     },
@@ -191,7 +186,6 @@
       "original": {
         "owner": "juicesharp",
         "repo": "rpiv-mono",
-        "rev": "68d9a0014b70006d7b04b57933752338a2716db7",
         "type": "github"
       }
     },
@@ -208,7 +202,6 @@
       "original": {
         "owner": "nicobailon",
         "repo": "pi-subagents",
-        "rev": "ba008223698e78ff71d75ed83076d858d14d9eee",
         "type": "github"
       }
     },
@@ -225,7 +218,6 @@
       "original": {
         "owner": "nicobailon",
         "repo": "pi-web-access",
-        "rev": "d9624588de4a92af1e73be731a462c9bdcfeb96d",
         "type": "github"
       }
     }

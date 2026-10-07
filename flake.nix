@@ -4,15 +4,15 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     agent-skills-nix = {
-      url = "github:Kyure-A/agent-skills-nix/dc122af897ab9a685c20ae54c639021619dbbb52";
+      url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     matt-skills = {
-      url = "github:mattpocock/skills/4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d";
+      url = "github:mattpocock/skills";
       flake = false;
     };
     humanlayer-skills = {
-      url = "github:humanlayer/skills/ca7c8088db69e315a8b2deea43820270457f8f3c";
+      url = "github:humanlayer/skills";
       flake = false;
     };
     pi.url = "github:earendil-works/pi/stable";
@@ -20,23 +20,23 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     markdown-preview = {
-      url = "github:omaclaren/pi-markdown-preview/b646f35e1ae906709ffce0203387ca24ba19ec0f";
+      url = "github:omaclaren/pi-markdown-preview";
       flake = false;
     };
     rpiv = {
-      url = "github:juicesharp/rpiv-mono/68d9a0014b70006d7b04b57933752338a2716db7";
+      url = "github:juicesharp/rpiv-mono";
       flake = false;
     };
     web-access = {
-      url = "github:nicobailon/pi-web-access/d9624588de4a92af1e73be731a462c9bdcfeb96d";
+      url = "github:nicobailon/pi-web-access";
       flake = false;
     };
     ponytail = {
-      url = "github:DietrichGebert/ponytail/e15862bb04d04285233a164460ced063941d9ef5";
+      url = "github:DietrichGebert/ponytail";
       flake = false;
     };
     subagents = {
-      url = "github:nicobailon/pi-subagents/ba008223698e78ff71d75ed83076d858d14d9eee";
+      url = "github:nicobailon/pi-subagents";
       flake = false;
     };
   };
